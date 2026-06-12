@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
+import { useAuth } from "./context/AuthContext";
+import useFetch from "./hooks/useFetch";
+import useLocalStorage from "./hooks/useLocalStorage";
 
 const Counter = () => {
   const [count, setCount] = useState<number>(0);
@@ -249,15 +252,207 @@ const ProductSearch = () => {
   );
 };
 
+const AutoFocusInput = () => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFocus = () => {
+    inputRef.current?.focus();
+  };
+
+  const handleClear = () => {
+    if (inputRef.current) {
+      inputRef.current.value = "";
+      inputRef.current.focus();
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: "32px" }}>
+      <h2>useRef - DOM Access</h2>
+      <input ref={inputRef} placeholder="I can be focused programatically" />
+      <button onClick={handleFocus} style={{ marginLeft: "8px" }}>
+        Focus
+      </button>
+      <button onClick={handleClear} style={{ marginLeft: "8px" }}>
+        Clear
+      </button>
+    </div>
+  );
+};
+
+const ReaderCounter = () => {
+  const [count, setCount] = useState<number>(0);
+
+  const renderCount = useRef<number>(0);
+
+  useEffect(() => {
+    renderCount.current += 1;
+  });
+
+  return (
+    <div style={{ marginBottom: "32px" }}>
+      <h2>useRef - Persist Without Re-render</h2>
+      <p>Count: {count}</p>
+      <p>This component has rendered {renderCount.current} times</p>
+      <button onClick={() => setCount((c) => c + 1)}>Increment</button>
+    </div>
+  );
+};
+
+const PreviousValue = () => {
+  const [name, setName] = useState<string>("");
+  const previousName = useRef<string>("");
+
+  useEffect(() => {
+    previousName.current = name;
+  }, [name]);
+
+  return (
+    <div style={{ marginBottom: "32px" }}>
+      <h2>useRef - Previous Value</h2>
+      <input
+        value={name}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setName(e.target.value)
+        }
+        placeholder="start typing..."
+      />
+      <p>Current: {name}</p>
+      <p>Previous: {previousName.current}</p>
+    </div>
+  );
+};
+
+const UserAvatar = () => {
+  const { user, isLoggedIn } = useAuth();
+  if (!isLoggedIn) return <p>No user logged in</p>;
+
+  return (
+    <div style={{ padding: "8px", background: "#f0f0f0", borderRadius: "8px" }}>
+      <p>👤 {user?.name}</p>
+      <p>✉️ {user?.email}</p>
+      <p>🔑 Role: {user?.role}</p>
+    </div>
+  );
+};
+
+const Sidebar = () => {
+  return (
+    <div
+      style={{
+        border: "1px solid #ccc",
+        padding: "16px",
+        marginBottom: "16px",
+      }}
+    >
+      <h3>Sidebar</h3>
+      <UserAvatar />
+    </div>
+  );
+};
+
+const Dashboard = () => {
+  return (
+    <div>
+      <h2>Dashboard</h2>
+      <Sidebar />
+    </div>
+  );
+};
+
+const LoginLogout = () => {
+  const { isLoggedIn, login, logout } = useAuth();
+
+  const handleLogin = () => {
+    login({
+      id: 1,
+      name: "Rahul Sharma",
+      email: "rahul@gmail.com",
+      role: "admin",
+    });
+  };
+
+  return (
+    <div style={{ marginBottom: "32px" }}>
+      <h2>Auth via Context</h2>
+      {isLoggedIn ? (
+        <button onClick={logout}>Logout</button>
+      ) : (
+        <button onClick={handleLogin}>Login as Rahul</button>
+      )}
+    </div>
+  );
+};
+
+interface Post {
+  id: number;
+  title: string;
+}
+
+const PostWithCustomHook = () => {
+  const {
+    data: posts,
+    loading,
+    error,
+  } = useFetch<Post[]>("https://jsonplaceholder.typicode.com/posts?_limit=5");
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
+
+  return (
+    <div>
+      <h2>Posts - via useFetch hook</h2>
+      {posts?.map((post) => (
+        <p key={post.id}>• {post.title}</p>
+      ))}
+    </div>
+  );
+};
+
+const ThemeToggle = () => {
+  const [theme, setTheme, removeTheme] = useLocalStorage<string>(
+    "theme",
+    "light",
+  );
+
+  return (
+    <div
+      style={{
+        marginBottom: "32px",
+        background: theme === "dark" ? "#333" : "#fff",
+        padding: "16px",
+        color: theme === "dark" ? "#fff" : "#000",
+      }}
+    >
+      <h2>Theme - via useLocalStrorage hook</h2>
+      <p>Current Theme: {theme}</p>
+      <button onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
+        Toggle Theme
+      </button>
+      <button onClick={() => removeTheme()}>Reset</button>
+      <p style={{ fontSize: "12px" }}>Refresh the page — theme persists! 🎉</p>
+    </div>
+  );
+};
+
 const App = () => {
   return (
     <div style={{ padding: "24px" }}>
-      <h1>Day 3 - Hooks in TypeScript</h1>
-      <Counter />
+      {/* <h1>Day 3 - Hooks in TypeScript</h1> */}
+      {/* <Counter />
       <UserFormComponent />
       <TodoList />
       <PostList />
-      <ProductSearch />
+      <ProductSearch /> */}
+      {/* <AutoFocusInput />
+      <ReaderCounter />
+      <PreviousValue /> */}
+
+      <h1>Day 4 - useRef, useContext, Custom Hooks</h1>
+      {/* <LoginLogout />
+      <Dashboard /> */}
+      <PostWithCustomHook />
+      <ThemeToggle />
     </div>
   );
 };
