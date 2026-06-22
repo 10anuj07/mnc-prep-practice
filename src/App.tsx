@@ -1,9 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { useAuth } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import useFetch from "./hooks/useFetch";
 import useLocalStorage from "./hooks/useLocalStorage";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+import PostsPage from "./pages/PostsPage";
+import PostDetailPage from "./pages/PostDetailPage";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import DashboardPage from "./pages/DashboardPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const Counter = () => {
   const [count, setCount] = useState<number>(0);
@@ -437,23 +446,49 @@ const ThemeToggle = () => {
 
 const App = () => {
   return (
-    <div style={{ padding: "24px" }}>
-      {/* <h1>Day 3 - Hooks in TypeScript</h1> */}
-      {/* <Counter />
-      <UserFormComponent />
-      <TodoList />
-      <PostList />
-      <ProductSearch /> */}
-      {/* <AutoFocusInput />
-      <ReaderCounter />
-      <PreviousValue /> */}
+    // <div style={{ padding: "24px" }}>
+    //   <h1>Day 3 - Hooks in TypeScript</h1>
+    //   <Counter />
+    //   <UserFormComponent />
+    //   <TodoList />
+    //   <PostList />
+    //   <ProductSearch />
+    //   <AutoFocusInput />
+    //   <ReaderCounter />
+    //   <PreviousValue />
 
-      <h1>Day 4 - useRef, useContext, Custom Hooks</h1>
-      {/* <LoginLogout />
-      <Dashboard /> */}
-      <PostWithCustomHook />
-      <ThemeToggle />
-    </div>
+    //   <h1>Day 4 - useRef, useContext, Custom Hooks</h1>
+    //   <LoginLogout />
+    //   <Dashboard />
+    //   <PostWithCustomHook />
+    //   <ThemeToggle />
+    // </div>
+
+    <BrowserRouter>
+      <AuthProvider>
+        <Navbar />
+        <Routes>
+          {/* Public routes — anyone can access */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/posts" element={<PostsPage />} />
+          <Route path="/posts/:id" element={<PostDetailPage />} />
+
+          {/* Protected route — must be logged in */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 404 — catches everything else */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
 

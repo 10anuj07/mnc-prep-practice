@@ -25,7 +25,7 @@ const useFetch = <T>(url: string): FetchState<T> => {
         setError(null);
       } catch (error) {
         if ((error as Error).name === "AbortError") return;
-        setError(null);
+        setError((error as Error).message);
       } finally {
         setLoading(false);
       }
