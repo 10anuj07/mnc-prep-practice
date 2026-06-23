@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import axiosInstance from "../api/axiosInstance";
+import { AxiosError } from "axios";
 
 interface FetchState<T> {
   data: T | null;
@@ -17,22 +19,22 @@ const useFetch = <T>(url: string): FetchState<T> => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(url, { signal: controller.signal });
-
-        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-        const result: T = await response.json();
-        setData(result);
+        const response = await axiosInstance.get<T>(url, {
+          signal: controller.signal,
+        });
+        setData(response.data);
         setError(null);
-      } catch (error) {
-        if ((error as Error).name === "AbortError") return;
-        setError((error as Error).message);
+      } catch (err) {
+        const axiosErr = err as AxiosError;
+        if (axiosErr.name === "CanceledError") return;
+        setError(axiosErr.message || "Something went wrong");
       } finally {
         setLoading(false);
       }
     };
     fetchData();
     return () => controller.abort();
-  }, []);
+  }, [url]);
 
   return { data, loading, error };
 };
